@@ -149,17 +149,20 @@ app.post('/api/admin/login', async (req, res) => {
     }
 
     // Allow registrar login but include account type in response for routing
+    console.log('Login - admin.accountType:', admin.accountType, 'typeof:', typeof admin.accountType)
     const token = jwt.sign(
       { id: admin._id.toString(), username: admin.username, accountType: admin.accountType },
       JWT_SECRET,
       { expiresIn: '7d' }
     )
-    res.json({ 
+    const loginResponse = { 
       message: 'OK', 
       username: admin.username, 
       token,
       accountType: admin.accountType 
-    })
+    }
+    console.log('Login response being sent:', loginResponse)
+    res.json(loginResponse)
   } catch (err) {
     console.error('Login error:', err)
     res.status(500).json({ error: 'Login failed.' })
