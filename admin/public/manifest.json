@@ -1,0 +1,16 @@
+{
+  "name": "West Coast College Admin",
+  "short_name": "WCC Admin",
+  "description": "West Coast College Administrative Portal",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1e40af",
+  "theme_color": "#1e40af",
+  "icons": [
+    {
+      "src": "/Logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpg"
+    }
+  ]
+}
