@@ -1,0 +1,305 @@
+import { useState, useEffect } from 'react';
+import { Users, Calendar, Search, Download, Eye } from 'lucide-react';
+import { getAccountLogs } from '../lib/authApi';
+import type { AccountLog } from '../lib/authApi';
+import './AccountLogs.css';
+
+export default function AccountLogs() {
+  const [logs, setLogs] = useState<AccountLog[]>([]);
+  const [filteredLogs, setFilteredLogs] = useState<AccountLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'admin' | 'registrar'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive' | 'suspended'>('all');
+  const [selectedLog, setSelectedLog] = useState<AccountLog | null>(null);
+
+  useEffect(() => {
+    const loadLogs = async () => {
+      try {
+        const data = await getAccountLogs();
+        setLogs(data);
+        setFilteredLogs(data);
+        setError(null);
+      } catch (error) {
+        console.error('Failed to load logs:', error);
+        setError('Failed to load account logs. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLogs();
+  }, []);
+
+  useEffect(() => {
+    let filtered = logs;
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(log =>
+        log.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.uid.includes(searchTerm)
+      );
+    }
+
+    // Filter by account type
+    if (filterType !== 'all') {
+      filtered = filtered.filter(log => log.accountType === filterType);
+    }
+
+    // Filter by status
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(log => log.status === filterStatus);
+    }
+
+    setFilteredLogs(filtered);
+  }, [logs, searchTerm, filterType, filterStatus]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return '#16a34a';
+      case 'inactive':
+        return '#6b7280';
+      case 'suspended':
+        return '#dc2626';
+      default:
+        return '#6b7280';
+    }
+  };
+
+  const getAccountTypeColor = (type: string) => {
+    return type === 'admin' ? '#2563eb' : '#7c3aed';
+  };
+
+  const handleExport = () => {
+    // TODO: Implement export functionality
+    console.log('Exporting logs...');
+  };
+
+  if (loading) {
+    return (
+      <div className="account-logs-page">
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading account logs...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="account-logs-page">
+        <header>
+          <h1 className="logs-title">Account Registration Logs</h1>
+          <p className="logs-desc">View and manage account creation history</p>
+        </header>
+        <div className="error-state">
+          <div className="error-message">
+            <p>{error}</p>
+            <button onClick={() => window.location.reload()} className="retry-btn">
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="account-logs-page">
+      <header>
+        <h1 className="logs-title">Account Registration Logs</h1>
+        <p className="logs-desc">View and manage account creation history</p>
+      </header>
+
+      {/* Filters and Search */}
+      <div className="logs-controls">
+        <div className="search-section">
+          <div className="search-box">
+            <Search size={18} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search by username, display name, or UID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+        </div>
+
+        <div className="filters-section">
+          <div className="filter-group">
+            <label className="filter-label">Account Type:</label>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value as any)}
+              className="filter-select"
+            >
+              <option value="all">All Types</option>
+              <option value="admin">Admin</option>
+              <option value="registrar">Registrar</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label className="filter-label">Status:</label>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+              className="filter-select"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+
+          <button className="export-btn" onClick={handleExport}>
+            <Download size={16} />
+            Export
+          </button>
+        </div>
+      </div>
+
+      {/* Logs Table */}
+      <div className="logs-table-container">
+        <table className="logs-table">
+          <thead>
+            <tr>
+              <th>Account Details</th>
+              <th>UID</th>
+              <th>Account Type</th>
+              <th>Created</th>
+              <th>Created By</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredLogs.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="no-results">
+                  <div className="no-results-content">
+                    <Users size={48} />
+                    <p>No logs found matching your criteria</p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              filteredLogs.map((log) => (
+                <tr key={log._id} className="log-row">
+                  <td className="account-details">
+                    <div className="account-info">
+                      <div className="account-name">{log.displayName}</div>
+                      <div className="account-username">@{log.username}</div>
+                    </div>
+                  </td>
+                  <td className="uid-cell">
+                    <code className="uid-code">{log.uid}</code>
+                  </td>
+                  <td className="type-cell">
+                    <span
+                      className="type-badge"
+                      style={{ backgroundColor: getAccountTypeColor(log.accountType) }}
+                    >
+                      {log.accountType.charAt(0).toUpperCase() + log.accountType.slice(1)}
+                    </span>
+                  </td>
+                  <td className="date-cell">
+                    <div className="date-info">
+                      <Calendar size={14} />
+                      <span>{formatDate(log.createdAt)}</span>
+                    </div>
+                  </td>
+                  <td className="creator-cell">{log.createdBy}</td>
+                  <td className="status-cell">
+                    <span
+                      className="status-badge"
+                      style={{ color: getStatusColor(log.status) }}
+                    >
+                      {log.status.charAt(0).toUpperCase() + log.status.slice(1)}
+                    </span>
+                  </td>
+                  <td className="actions-cell">
+                    <button
+                      className="action-btn"
+                      onClick={() => setSelectedLog(log)}
+                      title="View details"
+                    >
+                      <Eye size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Detail Modal */}
+      {selectedLog && (
+        <div className="modal-overlay" onClick={() => setSelectedLog(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Account Details</h3>
+              <button
+                className="close-btn"
+                onClick={() => setSelectedLog(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <label>Display Name:</label>
+                  <span>{selectedLog.displayName}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Username:</label>
+                  <span>@{selectedLog.username}</span>
+                </div>
+                <div className="detail-item">
+                  <label>UID:</label>
+                  <code>{selectedLog.uid}</code>
+                </div>
+                <div className="detail-item">
+                  <label>Account Type:</label>
+                  <span>{selectedLog.accountType}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Status:</label>
+                  <span>{selectedLog.status}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Created At:</label>
+                  <span>{formatDate(selectedLog.createdAt)}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Created By:</label>
+                  <span>{selectedLog.createdBy}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,93 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Light theme colors (default) */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-subtle: rgba(79, 70, 229, 0.08);
+  --color-accent: #eab308;
+  --color-accent-hover: #ca8a04;
+  --color-bg: #ffffff;
+  --color-bg-soft: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-hover: rgba(0, 0, 0, 0.02);
+  --color-border: #e5e7eb;
+  --color-sidebar-border: #3b82f6;
+  --color-text: #1f2937;
+  --color-text-muted: #6b7280;
+  --color-text-bold: #111827;
+  --color-error: #ef4444;
+  --color-success: #16a34a;
+
+  color: var(--color-text);
+  background-color: var(--color-bg);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark theme colors */
+[data-theme="dark"] {
+  --color-primary: #6366f1;
+  --color-primary-hover: #7c3aed;
+  --color-primary-subtle: rgba(99, 102, 241, 0.15);
+  --color-accent: #fbbf24;
+  --color-accent-hover: #f59e0b;
+  --color-bg: #111827;
+  --color-bg-soft: #1f2937;
+  --color-surface: #1f2937;
+  --color-surface-hover: rgba(255, 255, 255, 0.05);
+  --color-border: #374151;
+  --color-sidebar-border: #4b5563;
+  --color-text: #f9fafb;
+  --color-text-muted: #9ca3af;
+  --color-text-bold: #ffffff;
+  --color-error: #f87171;
+  --color-success: #34d399;
+}
+
+a {
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.25s;
+}
+button:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+button:focus,
+button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
