@@ -9,7 +9,7 @@ type LoginProps = {
   loading?: boolean
 }
 
-export default function Login({ onLogin, error, signUpSuccess: _signUpSuccess, onSwitchToSignUp: _onSwitchToSignUp, loading }: LoginProps) {
+export default function Login({ onLogin, error, signUpSuccess: _signUpSuccess, onSwitchToSignUp, loading }: LoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
@@ -57,14 +57,12 @@ export default function Login({ onLogin, error, signUpSuccess: _signUpSuccess, o
           </button>
         </form>
 
-        {/* Sign up link – commented out
         <p className="login-footer">
           No account?{' '}
           <button type="button" className="login-link" onClick={onSwitchToSignUp}>
             Create admin account
           </button>
         </p>
-        */}
       </div>
     </div>
   )
