@@ -13,9 +13,11 @@ export default function Profile({ onProfileUpdated }: ProfileProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
+  const [showToast, setShowToast] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [isAvatarHovered, setIsAvatarHovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Consolidated form state
   const [formData, setFormData] = useState({
@@ -45,7 +47,21 @@ export default function Profile({ onProfileUpdated }: ProfileProps) {
     return () => controller.abort();
   }, []);
 
-  // Helper to detect if the user has actually changed anything
+  // Helper to show toast notification
+  const showToastNotification = (type: 'error' | 'success', message: string) => {
+    setStatus({ type, message });
+    setShowToast(true);
+    
+    // Clear existing timer
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    
+    // Auto-hide after 3 seconds
+    toastTimerRef.current = setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  };
   const isDirty = useMemo(() => {
     if (!profile) return false;
     return (
@@ -69,30 +85,26 @@ export default function Profile({ onProfileUpdated }: ProfileProps) {
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setStatus({ type: 'error', message: 'File size must be less than 5MB.' });
+      showToastNotification('error', 'File size must be less than 5MB.');
       return;
     }
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      setStatus({ type: 'error', message: 'Only image files (JPEG, JPG, PNG, GIF, WebP) are allowed.' });
+      showToastNotification('error', 'Only image files (JPEG, JPG, PNG, GIF, WebP) are allowed.');
       return;
     }
 
     setUploadingAvatar(true);
-    setStatus(null);
 
     try {
       const result = await uploadAvatar(file);
       setProfile(prev => prev ? { ...prev, avatar: result.avatar } : null);
-      setStatus({ type: 'success', message: 'Avatar uploaded successfully.' });
+      showToastNotification('success', 'Avatar uploaded successfully.');
       onProfileUpdated?.({ ...profile!, avatar: result.avatar });
     } catch (err) {
-      setStatus({ 
-        type: 'error', 
-        message: err instanceof Error ? err.message : 'Failed to upload avatar.' 
-      });
+      showToastNotification('error', err instanceof Error ? err.message : 'Failed to upload avatar.');
     } finally {
       setUploadingAvatar(false);
       // Clear the file input
@@ -118,13 +130,10 @@ export default function Profile({ onProfileUpdated }: ProfileProps) {
       const updated = await updateProfile(updates);
       
       setProfile(updated);
-      setStatus({ type: 'success', message: 'Profile updated successfully.' });
+      showToastNotification('success', 'Profile updated successfully.');
       onProfileUpdated?.(updated);
     } catch (err) {
-      setStatus({ 
-        type: 'error', 
-        message: err instanceof Error ? err.message : 'Failed to update profile.' 
-      });
+      showToastNotification('error', err instanceof Error ? err.message : 'Failed to update profile.');
     } finally {
       setSaving(false);
     }
@@ -140,12 +149,6 @@ export default function Profile({ onProfileUpdated }: ProfileProps) {
       </header>
 
       <form className="profile-form" onSubmit={handleSubmit}>
-        {status && (
-          <p className={`profile-status ${status.type === 'error' ? 'profile-error' : 'profile-success'}`} role="alert">
-            {status.message}
-          </p>
-        )}
-
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3rem' }}>
           {/* Left Column: Avatar */}
           <div style={{ flex: '0 0 250px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -322,6 +325,16 @@ export default function Profile({ onProfileUpdated }: ProfileProps) {
           </div>
         </div>
       </form>
+
+      {/* Toast Notification */}
+      {status && (
+        <div 
+          className={`profile-toast ${status.type} ${showToast ? 'show' : ''}`}
+          role="alert"
+        >
+          {status.message}
+        </div>
+      )}
     </div>
   );
 }

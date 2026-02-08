@@ -181,3 +181,34 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+/* Toast Notification */
+.profile-toast {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  transform: translateX(150%);
+  transition: transform 0.3s ease-out;
+}
+
+.profile-toast.show {
+  transform: translateX(0);
+}
+
+.profile-toast.success {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+}
+
+.profile-toast.error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+}

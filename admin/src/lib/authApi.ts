@@ -16,7 +16,7 @@ export function clearStoredToken(): void {
 
 export type SignUpResponse = { message: string; username: string }
 export type LoginResponse = { message: string; username: string; token: string }
-export type ProfileResponse = { username: string; displayName: string; email: string; avatar: string }
+export type ProfileResponse = { username: string; displayName: string; email: string; avatar: string; accountType: 'admin' | 'registrar' }
 export type UpdateProfileRequest = {
   displayName?: string
   email?: string
@@ -186,4 +186,16 @@ export async function getAccountCount(accountType: 'admin' | 'registrar'): Promi
     throw new Error((data?.error as string) || 'Failed to get account count.')
   }
   return data.count as number
+}
+
+export async function deleteAccount(accountId: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/api/admin/accounts/${accountId}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error((data?.error as string) || 'Failed to delete account.')
+  }
+  return data as { message: string }
 }

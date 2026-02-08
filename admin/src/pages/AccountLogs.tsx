@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Users, Calendar, Search, Download, Eye } from 'lucide-react';
-import { getAccountLogs } from '../lib/authApi';
-import type { AccountLog } from '../lib/authApi';
+import { Users, Calendar, Search, Download, Eye, Trash2 } from 'lucide-react';
+import { getAccountLogs, deleteAccount, getProfile } from '../lib/authApi';
+import type { AccountLog, ProfileResponse } from '../lib/authApi';
 import './AccountLogs.css';
 
 export default function AccountLogs() {
@@ -13,6 +13,16 @@ export default function AccountLogs() {
   const [filterType, setFilterType] = useState<'all' | 'admin' | 'registrar'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive' | 'suspended'>('all');
   const [selectedLog, setSelectedLog] = useState<AccountLog | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<AccountLog | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<ProfileResponse | null>(null);
+
+  // Load current user profile
+  useEffect(() => {
+    getProfile()
+      .then(setCurrentUser)
+      .catch(() => setCurrentUser(null));
+  }, []);
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -88,6 +98,22 @@ export default function AccountLogs() {
   const handleExport = () => {
     // TODO: Implement export functionality
     console.log('Exporting logs...');
+  };
+
+  const handleDelete = async (account: AccountLog) => {
+    setDeleteLoading(true);
+    try {
+      await deleteAccount(account._id);
+      // Remove from local state
+      setLogs(prev => prev.filter(log => log._id !== account._id));
+      setFilteredLogs(prev => prev.filter(log => log._id !== account._id));
+      setDeleteConfirm(null);
+    } catch (err) {
+      console.error('Failed to delete account:', err);
+      alert(err instanceof Error ? err.message : 'Failed to delete account');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   if (loading) {
@@ -244,6 +270,19 @@ export default function AccountLogs() {
                     >
                       <Eye size={16} />
                     </button>
+                    {/* Show delete button if:
+                        1. Not your own account
+                        2. Either you're super admin (can delete anyone) OR target is not an admin (registrar) */}
+                    {currentUser?.username !== log.username && 
+                     (currentUser?.accountType !== 'admin' || log.accountType !== 'admin') && (
+                      <button
+                        className="action-btn delete-btn"
+                        onClick={() => setDeleteConfirm(log)}
+                        title="Delete account"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
@@ -295,6 +334,55 @@ export default function AccountLogs() {
                   <label>Created By:</label>
                   <span>{selectedLog.createdBy}</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => !deleteLoading && setDeleteConfirm(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ color: '#dc2626' }}>Delete Account</h3>
+              <button
+                className="close-btn"
+                onClick={() => !deleteLoading && setDeleteConfirm(null)}
+                disabled={deleteLoading}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: '1rem' }}>
+                Are you sure you want to delete the account <strong>@{deleteConfirm.username}</strong>?
+              </p>
+              <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                This action cannot be undone. The account for <strong>{deleteConfirm.displayName}</strong> will be permanently removed.
+              </p>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <button
+                  className="action-btn"
+                  onClick={() => setDeleteConfirm(null)}
+                  disabled={deleteLoading}
+                  style={{ padding: '0.5rem 1rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="action-btn delete-btn"
+                  onClick={() => handleDelete(deleteConfirm)}
+                  disabled={deleteLoading}
+                  style={{ 
+                    padding: '0.5rem 1rem', 
+                    backgroundColor: '#dc2626', 
+                    color: 'white',
+                    opacity: deleteLoading ? 0.7 : 1
+                  }}
+                >
+                  {deleteLoading ? 'Deleting...' : 'Delete Account'}
+                </button>
               </div>
             </div>
           </div>

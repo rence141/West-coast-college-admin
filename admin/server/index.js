@@ -172,6 +172,7 @@ app.get('/api/admin/profile', authMiddleware, async (req, res) => {
       displayName: admin.displayName || '',
       email: admin.email || '',
       avatar: admin.avatar || '',
+      accountType: admin.accountType || 'admin',
     })
   } catch (err) {
     console.error('Profile get error:', err)
@@ -222,6 +223,7 @@ app.patch('/api/admin/profile', authMiddleware, async (req, res) => {
       displayName: updated.displayName || '',
       email: updated.email || '',
       avatar: updated.avatar || '',
+      accountType: updated.accountType || 'admin',
     })
   } catch (err) {
     console.error('Profile update error:', err)
@@ -387,6 +389,44 @@ app.post('/api/admin/accounts', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Create account error:', err)
     res.status(500).json({ error: 'Failed to create account.' })
+  }
+})
+
+// DELETE /api/admin/accounts/:id - delete an account (super admin can delete anyone, regular admin can only delete registrars)
+app.delete('/api/admin/accounts/:id', authMiddleware, async (req, res) => {
+  if (!dbReady) {
+    return res.status(503).json({ error: 'Database unavailable.' })
+  }
+  try {
+    // Get the current admin (the one making the request)
+    const currentAdmin = await Admin.findById(req.adminId)
+    if (!currentAdmin) {
+      return res.status(404).json({ error: 'Current admin not found.' })
+    }
+
+    // Check if the account to delete exists
+    const accountToDelete = await Admin.findById(req.params.id)
+    if (!accountToDelete) {
+      return res.status(404).json({ error: 'Account not found.' })
+    }
+
+    // Prevent deleting yourself
+    if (req.adminId === req.params.id) {
+      return res.status(400).json({ error: 'Cannot delete your own account.' })
+    }
+
+    // Regular admin cannot delete other admin accounts (only super admin/original creator can)
+    if (currentAdmin.accountType === 'admin' && accountToDelete.accountType === 'admin') {
+      return res.status(403).json({ error: 'Only super admin can delete other admin accounts.' })
+    }
+
+    // Delete the account
+    await Admin.findByIdAndDelete(req.params.id)
+    
+    res.json({ message: `Account "${accountToDelete.username}" deleted successfully.` })
+  } catch (err) {
+    console.error('Delete account error:', err)
+    res.status(500).json({ error: 'Failed to delete account.' })
   }
 })
 
