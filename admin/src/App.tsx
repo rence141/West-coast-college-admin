@@ -37,6 +37,9 @@ function App() {
       setStoredToken(data.token)
       // Always fetch profile to get accurate account type
       const profile = await getProfile()
+      console.log('Login response:', data)
+      console.log('Profile data:', profile)
+      console.log('Account type being set:', profile.accountType)
       setUser({ username: data.username, accountType: profile.accountType })
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : 'Invalid username or password.')
@@ -57,7 +60,10 @@ function App() {
 
   if (user) {
     // Show different dashboard based on account type
+    console.log('Current user state:', user)
+    console.log('Account type check:', user.accountType, '=== registrar?', user.accountType === 'registrar')
     if (user.accountType === 'registrar') {
+      console.log('Rendering RegistrarDashboard')
       return (
         <RegistrarDashboard
           username={user.username}
@@ -66,6 +72,7 @@ function App() {
         />
       )
     }
+    console.log('Rendering Admin Dashboard')
     return (
       <Dashboard
         username={user.username}
