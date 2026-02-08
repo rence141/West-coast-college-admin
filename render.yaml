@@ -3,9 +3,9 @@ services:
     name: wcc-admin-backend
     env: node
     repo: https://github.com/rence141/west-coast-college-admin
-    rootDir: admin/server
-    buildCommand: npm install
-    startCommand: npm start
+    rootDir: admin
+    buildCommand: npm install && npm run build && cd server && npm install
+    startCommand: node server/index.js
     envVars:
       - key: NODE_ENV
         value: production
