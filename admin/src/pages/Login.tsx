@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './Login.css'
 
 type LoginProps = {
@@ -11,10 +11,20 @@ type LoginProps = {
 export default function Login({ onLogin, error, signUpSuccess: _signUpSuccess, loading }: LoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [accessDenied] = useState(false)
+  const [accessDenied, setAccessDenied] = useState(false)
+
+  useEffect(() => {
+    // Check if error indicates registrar access denied
+    if (error?.includes('Access denied. Registrar accounts must use the registrar portal.')) {
+      setAccessDenied(true)
+    } else {
+      setAccessDenied(false)
+    }
+  }, [error])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setAccessDenied(false)
     onLogin(username, password)
   }
 

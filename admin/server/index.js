@@ -142,6 +142,11 @@ app.post('/api/admin/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid username or password.' })
     }
 
+    // Block registrar accounts from accessing admin portal
+    if (admin.accountType === 'registrar') {
+      return res.status(403).json({ error: 'Access denied. Registrar accounts must use the registrar portal.' })
+    }
+
     const match = await admin.comparePassword(password)
     if (!match) {
       return res.status(401).json({ error: 'Invalid username or password.' })
