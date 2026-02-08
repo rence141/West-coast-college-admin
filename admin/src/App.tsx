@@ -2,10 +2,12 @@ import { useState, useCallback, useEffect } from 'react'
 import { login as apiLogin, getStoredToken, setStoredToken, clearStoredToken, getProfile } from './lib/authApi'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import RegistrarDashboard from './pages/RegistrarDashboard'
 import './App.css'
+import type { ProfileResponse } from './lib/authApi'
 
 function App() {
-  const [user, setUser] = useState<{ username: string } | null>(null)
+  const [user, setUser] = useState<{ username: string; accountType: string } | null>(null)
   const [loginError, setLoginError] = useState<string | undefined>(undefined)
   const [loginLoading, setLoginLoading] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
@@ -18,8 +20,12 @@ function App() {
       return
     }
     getProfile()
-      .then((profile) => setUser({ username: profile.username }))
-      .catch(() => clearStoredToken())
+      .then((profile) => {
+        setUser({ username: profile.username, accountType: profile.accountType })
+      })
+      .catch(() => {
+        clearStoredToken()
+      })
       .finally(() => setAuthChecked(true))
   }, [user, authChecked])
 
@@ -29,7 +35,9 @@ function App() {
     try {
       const data = await apiLogin(username, password)
       setStoredToken(data.token)
-      setUser({ username: data.username })
+      // Fetch profile to get account type
+      const profile = await getProfile()
+      setUser({ username: data.username, accountType: profile.accountType })
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : 'Invalid username or password.')
     } finally {
@@ -43,12 +51,26 @@ function App() {
     setLoginError(undefined)
   }, [])
 
+  const handleProfileUpdated = useCallback((profile: ProfileResponse) => {
+    setUser(prev => prev ? { ...prev, username: profile.username, accountType: profile.accountType } : null)
+  }, [])
+
   if (user) {
+    // Show different dashboard based on account type
+    if (user.accountType === 'registrar') {
+      return (
+        <RegistrarDashboard
+          username={user.username}
+          onLogout={handleLogout}
+          onProfileUpdated={handleProfileUpdated}
+        />
+      )
+    }
     return (
       <Dashboard
         username={user.username}
         onLogout={handleLogout}
-        onProfileUpdated={(profile) => setUser({ username: profile.username })}
+        onProfileUpdated={handleProfileUpdated}
       />
     )
   }
@@ -62,6 +84,7 @@ function App() {
     )
   }
 
+  // Show appropriate login page
   return (
     <Login
       onLogin={handleLogin}

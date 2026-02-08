@@ -172,7 +172,7 @@ app.get('/api/admin/profile', authMiddleware, async (req, res) => {
       displayName: admin.displayName || '',
       email: admin.email || '',
       avatar: admin.avatar || '',
-      accountType: admin.accountType || 'admin',
+      accountType: admin.accountType,
     })
   } catch (err) {
     console.error('Profile get error:', err)
@@ -223,7 +223,7 @@ app.patch('/api/admin/profile', authMiddleware, async (req, res) => {
       displayName: updated.displayName || '',
       email: updated.email || '',
       avatar: updated.avatar || '',
-      accountType: updated.accountType || 'admin',
+      accountType: updated.accountType,
     })
   } catch (err) {
     console.error('Profile update error:', err)
@@ -362,9 +362,9 @@ app.post('/api/admin/accounts', authMiddleware, async (req, res) => {
       return res.status(409).json({ error: 'UID already exists.' })
     }
 
-    // Get current admin for createdBy field
+    // Get current admin for createdBy field (store UID instead of name for immutability)
     const currentAdmin = await Admin.findById(req.adminId)
-    const createdBy = currentAdmin?.displayName || currentAdmin?.username || 'Super Admin'
+    const createdBy = currentAdmin?.uid || 'SUPERADMIN'
 
     // Create new account
     const newAccount = new Admin({

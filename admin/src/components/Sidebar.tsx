@@ -108,7 +108,7 @@ export default function Sidebar({ activeLink = 'dashboard', onNavigate, profileU
             <div className="profile-name">
               {profile?.displayName || profile?.username || 'Admin User'}
             </div>
-            <div className="profile-role">Administrator</div>
+            <div className="profile-role">{profile?.accountType === 'registrar' ? 'Registrar' : 'Administrator'}</div>
           </div>
         </div>
       </div>
