@@ -11,7 +11,7 @@ type LoginProps = {
 export default function Login({ onLogin, error, signUpSuccess: _signUpSuccess, loading }: LoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [accessDenied, setAccessDenied] = useState(false)
+  const [accessDenied] = useState(false)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()

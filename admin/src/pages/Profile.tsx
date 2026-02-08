@@ -17,7 +17,7 @@ export default function Profile({ onProfileUpdated }: ProfileProps) {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [isAvatarHovered, setIsAvatarHovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
 
   // Consolidated form state
   const [formData, setFormData] = useState({
