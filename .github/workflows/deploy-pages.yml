@@ -6,9 +6,23 @@ on:
   pull_request:
     branches: [ main ]
 
+# Sets permissions for the deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
     - name: Checkout
@@ -19,7 +33,7 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: admin/node_modules
+        cache-dependency-path: admin/package-lock.json
         
     - name: Install dependencies
       run: |
