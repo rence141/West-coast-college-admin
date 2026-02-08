@@ -142,22 +142,23 @@ app.post('/api/admin/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid username or password.' })
     }
 
-    // Block registrar accounts from accessing admin portal
-    if (admin.accountType === 'registrar') {
-      return res.status(403).json({ error: 'Access denied. Registrar accounts must use the registrar portal.' })
-    }
-
     const match = await admin.comparePassword(password)
     if (!match) {
       return res.status(401).json({ error: 'Invalid username or password.' })
     }
 
+    // Allow registrar login but include account type in response for routing
     const token = jwt.sign(
-      { id: admin._id.toString(), username: admin.username },
+      { id: admin._id.toString(), username: admin.username, accountType: admin.accountType },
       JWT_SECRET,
       { expiresIn: '7d' }
     )
-    res.json({ message: 'OK', username: admin.username, token })
+    res.json({ 
+      message: 'OK', 
+      username: admin.username, 
+      token,
+      accountType: admin.accountType 
+    })
   } catch (err) {
     console.error('Login error:', err)
     res.status(500).json({ error: 'Login failed.' })

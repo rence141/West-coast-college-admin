@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import './Login.css'
 
 type LoginProps = {
@@ -11,20 +11,9 @@ type LoginProps = {
 export default function Login({ onLogin, error, signUpSuccess: _signUpSuccess, loading }: LoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [accessDenied, setAccessDenied] = useState(false)
-
-  useEffect(() => {
-    // Check if error indicates registrar access denied
-    if (error?.includes('Access denied. Registrar accounts must use the registrar portal.')) {
-      setAccessDenied(true)
-    } else {
-      setAccessDenied(false)
-    }
-  }, [error])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setAccessDenied(false)
     onLogin(username, password)
   }
 
@@ -51,13 +40,7 @@ export default function Login({ onLogin, error, signUpSuccess: _signUpSuccess, l
             <p className="login-subtitle">Enter your credentials to continue</p>
 
             <form className="login-form" onSubmit={handleSubmit}>
-              {accessDenied && (
-                <div className="login-error" role="alert" style={{ backgroundColor: '#fee2e2', border: '1px solid #dc2626' }}>
-                  <strong>Access Denied</strong><br />
-                  Unauthorized access attempt detected. This incident has been logged.
-                </div>
-              )}
-              {error && !accessDenied && <p className="login-error" role="alert">{error}</p>}
+              {error && <p className="login-error" role="alert">{error}</p>}
               
               <label className="login-label">
                 Username
@@ -68,7 +51,6 @@ export default function Login({ onLogin, error, signUpSuccess: _signUpSuccess, l
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter Username"
                   required
-                  disabled={accessDenied}
                 />
               </label>
 
@@ -81,12 +63,11 @@ export default function Login({ onLogin, error, signUpSuccess: _signUpSuccess, l
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="********"
                   required
-                  disabled={accessDenied}
                 />
               </label>
 
-              <button type="submit" className="login-submit" disabled={loading || accessDenied}>
-                {loading ? 'Authenticating…' : accessDenied ? 'Access Denied' : 'Sign In'}
+              <button type="submit" className="login-submit" disabled={loading}>
+                {loading ? 'Authenticating…' : 'Sign In'}
               </button>
             </form>
           </div>

@@ -15,7 +15,7 @@ export function clearStoredToken(): void {
 }
 
 export type SignUpResponse = { message: string; username: string }
-export type LoginResponse = { message: string; username: string; token: string }
+export type LoginResponse = { message: string; username: string; token: string; accountType?: 'admin' | 'registrar' }
 export type ProfileResponse = { username: string; displayName: string; email: string; avatar: string; accountType: 'admin' | 'registrar' }
 export type UpdateProfileRequest = {
   displayName?: string
